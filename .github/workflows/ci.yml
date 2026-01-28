@@ -1,0 +1,142 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+jobs:
+  # Detect which services changed
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      flask-oidc-proxy: ${{ steps.filter.outputs.flask-oidc-proxy }}
+      blob-service: ${{ steps.filter.outputs.blob-service }}
+      reports-service: ${{ steps.filter.outputs.reports-service }}
+      data-service: ${{ steps.filter.outputs.data-service }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      nginx-proxy: ${{ steps.filter.outputs.nginx-proxy }}
+      keycloak: ${{ steps.filter.outputs.keycloak }}
+      terraform: ${{ steps.filter.outputs.terraform }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            flask-oidc-proxy: 'services/flask-oidc-proxy/**'
+            blob-service: 'services/blob-service/**'
+            reports-service: 'services/reports-service/**'
+            data-service: 'services/data-service/**'
+            frontend: 'services/frontend/**'
+            nginx-proxy: 'services/nginx-proxy/**'
+            keycloak: 'services/keycloak/**'
+            terraform: 'infrastructure/**'
+
+  # Test Flask OIDC Proxy
+  test-flask:
+    needs: changes
+    if: needs.changes.outputs.flask-oidc-proxy == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/flask-oidc-proxy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: pip install pytest pytest-cov
+      - run: pytest tests/ --cov=app --cov-report=xml
+
+  # Test Spring Boot services (matrix)
+  test-spring:
+    needs: changes
+    if: >
+      needs.changes.outputs.blob-service == 'true' ||
+      needs.changes.outputs.reports-service == 'true' ||
+      needs.changes.outputs.data-service == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [blob-service, reports-service, data-service]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+          cache: "maven"
+      - run: mvn verify -B
+        working-directory: services/${{ matrix.service }}
+
+  # Test Frontend
+  test-frontend:
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+          cache-dependency-path: "services/frontend/pnpm-lock.yaml"
+      - run: pnpm install --frozen-lockfile || pnpm install
+      - run: pnpm lint
+      - run: pnpm build
+
+  # Validate Terraform
+  validate-terraform:
+    needs: changes
+    if: needs.changes.outputs.terraform == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: |
+          cd infrastructure/terraform/environments/dev
+          terraform init -backend=false
+          terraform validate
+      - run: terraform fmt -check -recursive infrastructure/terraform/
+
+  # Build Docker images (validate builds)
+  build-images:
+    needs: [changes, test-flask, test-spring, test-frontend]
+    if: always() && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: nginx-proxy
+            context: services/nginx-proxy
+          - service: flask-oidc-proxy
+            context: services/flask-oidc-proxy
+          - service: keycloak
+            context: services/keycloak
+          - service: blob-service
+            context: services/blob-service
+          - service: reports-service
+            context: services/reports-service
+          - service: data-service
+            context: services/data-service
+          - service: frontend
+            context: services/frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

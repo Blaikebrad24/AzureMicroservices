@@ -1,0 +1,63 @@
+# === Java / Spring Boot ===
+*.class
+*.jar
+*.war
+*.ear
+target/
+!.mvn/wrapper/maven-wrapper.jar
+.gradle/
+build/
+
+# === Node / Next.js ===
+node_modules/
+.next/
+out/
+.pnpm-store/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+dist/
+
+# === Terraform ===
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+
+# === Docker ===
+# Do not ignore Dockerfiles
+
+# === Certificates ===
+services/nginx-proxy/certs/*.crt
+services/nginx-proxy/certs/*.key
+services/nginx-proxy/certs/*.pem
+services/nginx-proxy/certs/*.csr
+
+# === Environment ===
+.env
+.env.local
+.env.*.local
+.env.*
+
+# === IDE ===
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# === Logs ===
+*.log
+logs/
+
+# === OS ===
+Thumbs.db
+Planning.md
+CLAUDE_impl.md
