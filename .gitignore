@@ -59,5 +59,8 @@ logs/
 
 # === OS ===
 Thumbs.db
+
+# === Project-specific exclusions ===
 Planning.md
 CLAUDE_impl.md
+.env.example
