@@ -5,7 +5,7 @@ provider "azurerm" {
 locals {
   project_name = var.project_name
   tags = {
-    environment = "dev"
+    environment = "staging"
     project     = var.project_name
     managed_by  = "terraform"
   }
@@ -15,7 +15,7 @@ locals {
 module "networking" {
   source              = "../../modules/networking"
   project_name        = local.project_name
-  resource_group_name = "${local.project_name}-dev-rg"
+  resource_group_name = "${local.project_name}-staging-rg"
   location            = var.location
   tags                = local.tags
 }
@@ -23,7 +23,7 @@ module "networking" {
 # Container Registry
 module "acr" {
   source              = "../../modules/acr"
-  acr_name            = replace("${local.project_name}devacr", "-", "")
+  acr_name            = replace("${local.project_name}stagingacr", "-", "")
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   tags                = local.tags
@@ -32,7 +32,7 @@ module "acr" {
 # Container App Environment
 module "container_app_env" {
   source              = "../../modules/container-app-environment"
-  project_name        = "${local.project_name}-dev"
+  project_name        = "${local.project_name}-staging"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   subnet_id           = module.networking.container_apps_subnet_id
@@ -42,7 +42,7 @@ module "container_app_env" {
 # Postgres
 module "postgres" {
   source              = "../../modules/postgres"
-  project_name        = "${local.project_name}-dev"
+  project_name        = "${local.project_name}-staging"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   subnet_id           = module.networking.postgres_subnet_id
@@ -55,7 +55,7 @@ module "postgres" {
 # Redis
 module "redis" {
   source              = "../../modules/redis"
-  project_name        = "${local.project_name}-dev"
+  project_name        = "${local.project_name}-staging"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   subnet_id           = module.networking.private_endpoints_subnet_id
@@ -65,7 +65,7 @@ module "redis" {
 # Storage Account
 module "storage" {
   source               = "../../modules/storage-account"
-  storage_account_name = replace("${local.project_name}devsa", "-", "")
+  storage_account_name = replace("${local.project_name}stagingsa", "-", "")
   resource_group_name  = module.networking.resource_group_name
   location             = module.networking.location
   tags                 = local.tags
@@ -74,13 +74,13 @@ module "storage" {
 # Key Vault
 module "keyvault" {
   source              = "../../modules/keyvault"
-  key_vault_name      = "${local.project_name}-dev-kv"
+  key_vault_name      = "${local.project_name}-staging-kv"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   tags                = local.tags
 }
 
-# Container Apps (7 custom services)
+# Container Apps
 module "nginx_proxy" {
   source              = "../../modules/container-app"
   app_name            = "nginx-proxy"

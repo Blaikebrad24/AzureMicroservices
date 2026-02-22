@@ -1,7 +1,7 @@
 "use server";
 
 import { apiGet, apiDelete, apiPostFormData } from "@/lib/api-client";
-import type { BlobMetadata, UploadResponse } from "@/types/api";
+import type { BlobMetadata, Page, UploadResponse } from "@/types/api";
 
 export async function listContainers(): Promise<string[]> {
   return apiGet<string[]>("blob", "/api/blobs/containers");
@@ -23,6 +23,26 @@ export async function uploadBlob(
   formData: FormData
 ): Promise<UploadResponse> {
   return apiPostFormData<UploadResponse>("blob", `/api/blobs/${container}`, formData);
+}
+
+export async function listBlobsPaginated(
+  page = 0,
+  size = 20,
+  sortBy = "lastModified",
+  sortDir = "desc",
+  container?: string,
+  search?: string
+): Promise<Page<BlobMetadata>> {
+  const params = new URLSearchParams({
+    page: String(page),
+    size: String(size),
+    sortBy,
+    sortDir,
+  });
+  if (container) params.set("container", container);
+  if (search) params.set("search", search);
+
+  return apiGet<Page<BlobMetadata>>("blob", `/api/blobs/paginated?${params}`);
 }
 
 export async function deleteBlob(container: string, blob: string): Promise<void> {

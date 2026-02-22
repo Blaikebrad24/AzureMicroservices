@@ -5,7 +5,7 @@ provider "azurerm" {
 locals {
   project_name = var.project_name
   tags = {
-    environment = "dev"
+    environment = "production"
     project     = var.project_name
     managed_by  = "terraform"
   }
@@ -15,7 +15,7 @@ locals {
 module "networking" {
   source              = "../../modules/networking"
   project_name        = local.project_name
-  resource_group_name = "${local.project_name}-dev-rg"
+  resource_group_name = "${local.project_name}-prod-rg"
   location            = var.location
   tags                = local.tags
 }
@@ -23,7 +23,7 @@ module "networking" {
 # Container Registry
 module "acr" {
   source              = "../../modules/acr"
-  acr_name            = replace("${local.project_name}devacr", "-", "")
+  acr_name            = replace("${local.project_name}prodacr", "-", "")
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   tags                = local.tags
@@ -32,7 +32,7 @@ module "acr" {
 # Container App Environment
 module "container_app_env" {
   source              = "../../modules/container-app-environment"
-  project_name        = "${local.project_name}-dev"
+  project_name        = "${local.project_name}-prod"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   subnet_id           = module.networking.container_apps_subnet_id
@@ -42,7 +42,7 @@ module "container_app_env" {
 # Postgres
 module "postgres" {
   source              = "../../modules/postgres"
-  project_name        = "${local.project_name}-dev"
+  project_name        = "${local.project_name}-prod"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   subnet_id           = module.networking.postgres_subnet_id
@@ -55,7 +55,7 @@ module "postgres" {
 # Redis
 module "redis" {
   source              = "../../modules/redis"
-  project_name        = "${local.project_name}-dev"
+  project_name        = "${local.project_name}-prod"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   subnet_id           = module.networking.private_endpoints_subnet_id
@@ -65,7 +65,7 @@ module "redis" {
 # Storage Account
 module "storage" {
   source               = "../../modules/storage-account"
-  storage_account_name = replace("${local.project_name}devsa", "-", "")
+  storage_account_name = replace("${local.project_name}prodsa", "-", "")
   resource_group_name  = module.networking.resource_group_name
   location             = module.networking.location
   tags                 = local.tags
@@ -74,13 +74,13 @@ module "storage" {
 # Key Vault
 module "keyvault" {
   source              = "../../modules/keyvault"
-  key_vault_name      = "${local.project_name}-dev-kv"
+  key_vault_name      = "${local.project_name}-prod-kv"
   resource_group_name = module.networking.resource_group_name
   location            = module.networking.location
   tags                = local.tags
 }
 
-# Container Apps (7 custom services)
+# Container Apps
 module "nginx_proxy" {
   source              = "../../modules/container-app"
   app_name            = "nginx-proxy"
@@ -92,8 +92,8 @@ module "nginx_proxy" {
   image_tag           = var.image_tag
   target_port         = 443
   external_ingress    = true
-  cpu                 = 0.25
-  memory              = "0.5Gi"
+  cpu                 = 0.5
+  memory              = "1Gi"
   tags                = local.tags
 }
 
@@ -110,6 +110,8 @@ module "keycloak" {
   external_ingress    = true
   cpu                 = 1.0
   memory              = "2Gi"
+  min_replicas        = 1
+  max_replicas        = 3
   env_vars = [
     { name = "KC_DB", value = "postgres" },
     { name = "KC_DB_URL", value = "jdbc:postgresql://${module.postgres.server_fqdn}:5432/keycloak_db" },
@@ -135,8 +137,8 @@ module "flask_oidc_proxy" {
   image_tag           = var.image_tag
   target_port         = 5000
   external_ingress    = false
-  cpu                 = 0.25
-  memory              = "0.5Gi"
+  cpu                 = 0.5
+  memory              = "1Gi"
   env_vars = [
     { name = "REDIS_URL", value = "rediss://:${module.redis.primary_access_key}@${module.redis.hostname}:${module.redis.port}" },
   ]
@@ -182,8 +184,8 @@ module "reports_service" {
   image_tag           = var.image_tag
   target_port         = 8080
   external_ingress    = false
-  cpu                 = 0.5
-  memory              = "1Gi"
+  cpu                 = 1.0
+  memory              = "2Gi"
   env_vars = [
     { name = "SPRING_PROFILES_ACTIVE", value = "azure" },
     { name = "SPRING_DATASOURCE_URL", value = "jdbc:postgresql://${module.postgres.server_fqdn}:5432/reports_service_db" },
@@ -211,8 +213,8 @@ module "data_service" {
   image_tag           = var.image_tag
   target_port         = 8080
   external_ingress    = false
-  cpu                 = 0.5
-  memory              = "1Gi"
+  cpu                 = 1.0
+  memory              = "2Gi"
   env_vars = [
     { name = "SPRING_PROFILES_ACTIVE", value = "azure" },
     { name = "SPRING_DATASOURCE_URL", value = "jdbc:postgresql://${module.postgres.server_fqdn}:5432/data_service_db" },

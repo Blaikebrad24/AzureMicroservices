@@ -1,6 +1,7 @@
 package com.app.blobservice.controller;
 
 import com.app.blobservice.model.BlobMetadata;
+import com.app.blobservice.model.BlobPage;
 import com.app.blobservice.model.UploadResponse;
 import com.app.blobservice.service.BlobStorageService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,18 @@ public class BlobController {
     @GetMapping("/containers")
     public ResponseEntity<List<String>> listContainers() {
         return ResponseEntity.ok(blobStorageService.listContainers());
+    }
+
+    @GetMapping("/paginated")
+    public ResponseEntity<BlobPage> listBlobsPaginated(
+            @RequestParam(required = false) String container,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "lastModified") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(
+                blobStorageService.listBlobsPaginated(container, page, size, sortBy, sortDir, search));
     }
 
     @GetMapping("/{container}")
