@@ -1,5 +1,6 @@
 import logging
 import secrets
+from urllib.parse import urlencode
 
 from flask import Flask, request, redirect, jsonify, make_response
 
@@ -166,14 +167,31 @@ def auth_callback():
 def auth_logout():
     """
     Clears session and redirects to Keycloak logout endpoint.
+    Uses OIDC RP-Initiated Logout with id_token_hint for seamless logout.
     """
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
+    id_token = None
 
     if session_id:
         session_data = session_manager.get_session(session_id)
+        if session_data:
+            id_token = session_data.get("id_token")
         session_manager.delete_session(session_id)
 
-    response = make_response(redirect(config.logout_url + "?redirect_uri=https://localhost"))
+    # Build Keycloak logout URL with OIDC RP-Initiated Logout params
+    logout_url = config.logout_url
+    params = {
+        "client_id": config.CLIENT_ID,
+        "post_logout_redirect_uri": "https://localhost",
+    }
+    if id_token:
+        params["id_token_hint"] = id_token
+
+    logout_redirect = f"{logout_url}?{urlencode(params)}"
+
+    logger.info("User logging out, redirecting to Keycloak logout")
+
+    response = make_response(redirect(logout_redirect))
     response.delete_cookie(SESSION_COOKIE_NAME)
     return response
 

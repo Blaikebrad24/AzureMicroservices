@@ -49,6 +49,9 @@
       "webOrigins": [
         "https://localhost"
       ],
+      "attributes": {
+        "post.logout.redirect.uris": "https://localhost"
+      },
       "defaultClientScopes": [
         "openid",
         "profile",
