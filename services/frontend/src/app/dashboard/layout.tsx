@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
+import { SignOutButton } from "@/components/sign-out-button";
 
 const navigation = [
   { name: "Overview", href: "/dashboard" },
@@ -23,7 +24,7 @@ export default async function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-gray-200 bg-white">
+      <aside className="relative w-64 border-r border-gray-200 bg-white">
         <div className="flex h-16 items-center border-b border-gray-200 px-6">
           <h1 className="text-lg font-semibold text-gray-900">Dashboard</h1>
         </div>
@@ -56,12 +57,7 @@ export default async function DashboardLayout({
               {user?.roles.join(", ") ?? "No roles"}
             </p>
           </div>
-          <a
-            href="/auth/logout"
-            className="mt-2 block text-xs text-red-600 hover:text-red-800"
-          >
-            Sign out
-          </a>
+          <SignOutButton />
         </div>
       </aside>
 
