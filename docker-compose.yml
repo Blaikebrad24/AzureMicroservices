@@ -53,7 +53,7 @@ services:
     image: mcr.microsoft.com/azure-storage/azurite
     container_name: azurite
     restart: unless-stopped
-    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0
+    command: azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0 --skipApiVersionCheck
     volumes:
       - azurite-data:/data
     ports:
@@ -150,6 +150,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: 6379
       SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-redispassword}
+    ports:
+      - "8081:8080"
     networks:
       - app-network
     depends_on:

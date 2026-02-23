@@ -47,7 +47,7 @@ class TokenValidator:
         """Validate and decode an ID token."""
         signing_key = self._get_signing_key(id_token)
 
-        issuer = f"{self.config.KEYCLOAK_URL}/realms/{self.config.KEYCLOAK_REALM}"
+        issuer = f"{self.config.KEYCLOAK_PUBLIC_URL}/realms/{self.config.KEYCLOAK_REALM}"
 
         decoded = jwt.decode(
             id_token,
@@ -68,7 +68,7 @@ class TokenValidator:
         """Validate and decode an access token."""
         signing_key = self._get_signing_key(access_token)
 
-        issuer = f"{self.config.KEYCLOAK_URL}/realms/{self.config.KEYCLOAK_REALM}"
+        issuer = f"{self.config.KEYCLOAK_PUBLIC_URL}/realms/{self.config.KEYCLOAK_REALM}"
 
         decoded = jwt.decode(
             access_token,
