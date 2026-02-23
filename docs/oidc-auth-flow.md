@@ -2,6 +2,9 @@
 
 This document describes the OpenID Connect (OIDC) Authorization Code Flow implemented across the nginx reverse proxy, Flask OIDC proxy, and Keycloak identity provider.
 
+admin-user -> password
+editor-user -> password
+viewer-user -> password
 ---
 
 ## Architecture
