@@ -1,6 +1,7 @@
 import { listContainers, listBlobs } from "@/actions/blob-actions";
 import { formatBytes, formatDate } from "@/lib/utils";
 import RoleGate from "@/components/role-gate";
+import { UploadBlobDialog } from "@/components/upload-blob-dialog";
 import type { BlobMetadata } from "@/types/api";
 
 export default async function BlobsPage() {
@@ -16,9 +17,7 @@ export default async function BlobsPage() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-900">Blob Storage</h2>
         <RoleGate allowedRoles={["admin", "editor"]}>
-          <button className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
-            Upload File
-          </button>
+          <UploadBlobDialog containers={containers} />
         </RoleGate>
       </div>
 
