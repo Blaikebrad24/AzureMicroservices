@@ -6,7 +6,7 @@ export function SignOutButton() {
       onClick={() => {
         window.location.href = "/auth/logout";
       }}
-      className="mt-2 block text-xs text-red-600 hover:text-red-800"
+      className="mt-2 block text-xs text-red-400 hover:text-red-300"
     >
       Sign out
     </button>

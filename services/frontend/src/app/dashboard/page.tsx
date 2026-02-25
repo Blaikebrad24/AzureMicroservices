@@ -1,59 +1,88 @@
 import { getCurrentUser } from "@/lib/auth";
+import { listContainers, listBlobsPaginated } from "@/actions/blob-actions";
+import { listReports } from "@/actions/report-actions";
+import { listData } from "@/actions/data-actions";
+import { MetricsCards } from "@/components/dashboard/metrics-cards";
+import { BlobStorageChart } from "@/components/dashboard/charts/blob-storage-chart";
+import { ReportStatusChart } from "@/components/dashboard/charts/report-status-chart";
+import { DataActivityChart } from "@/components/dashboard/charts/data-activity-chart";
+import { SystemHealthChart } from "@/components/dashboard/charts/system-health-chart";
+import type { Report } from "@/types/api";
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
+  // Fetch all metrics in parallel
+  const [containersResult, blobsResult, reportsResult, dataResult] =
+    await Promise.allSettled([
+      listContainers(),
+      listBlobsPaginated(0, 1),
+      listReports(),
+      listData(0, 1),
+    ]);
+
+  const containers =
+    containersResult.status === "fulfilled" ? containersResult.value : [];
+  const blobCount =
+    blobsResult.status === "fulfilled" ? blobsResult.value.totalElements : 0;
+  const reports =
+    reportsResult.status === "fulfilled" ? reportsResult.value : [];
+  const dataRecordCount =
+    dataResult.status === "fulfilled" ? dataResult.value.totalElements : 0;
+
+  // Build chart data: blob counts per container
+  let blobChartData: { container: string; count: number }[] = [];
+  if (containers.length > 0) {
+    const perContainerResults = await Promise.allSettled(
+      containers.map((c) => listBlobsPaginated(0, 1, "lastModified", "desc", c))
+    );
+    blobChartData = containers.map((c, i) => ({
+      container: c,
+      count:
+        perContainerResults[i].status === "fulfilled"
+          ? perContainerResults[i].value.totalElements
+          : 0,
+    }));
+  }
+
+  // Build chart data: report status distribution
+  const statusCounts: Record<string, number> = {};
+  reports.forEach((r: Report) => {
+    statusCounts[r.status] = (statusCounts[r.status] ?? 0) + 1;
+  });
+  const reportChartData = Object.entries(statusCounts).map(
+    ([status, count]) => ({ status, count })
+  );
+
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-gray-900">
-        Welcome, {user?.username ?? "User"}
-      </h2>
-      <p className="mt-1 text-sm text-gray-500">
-        Data & Engineering Team Dashboard
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold text-white">
+          Welcome back, {user?.username ?? "User"}
+        </h2>
+        <p className="mt-1 text-sm text-blue-200">
+          Data & Engineering Team Dashboard
+        </p>
+      </div>
 
-      <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Blob Storage Card */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-medium text-gray-900">Blob Storage</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Manage files in Azure Blob Storage
-          </p>
-          <a
-            href="/dashboard/blobs"
-            className="mt-4 inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            View Storage →
-          </a>
-        </div>
+      <MetricsCards
+        blobCount={blobCount}
+        containerCount={containers.length}
+        reportCount={reports.length}
+        dataRecordCount={dataRecordCount}
+      />
 
-        {/* Reports Card */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-medium text-gray-900">Reports</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Generate and download reports
-          </p>
-          <a
-            href="/dashboard/reports"
-            className="mt-4 inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            View Reports →
-          </a>
-        </div>
-
-        {/* Data Management Card */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-          <h3 className="text-lg font-medium text-gray-900">Data</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Browse and manage data records
-          </p>
-          <a
-            href="/dashboard/data"
-            className="mt-4 inline-block text-sm font-medium text-blue-600 hover:text-blue-800"
-          >
-            View Data →
-          </a>
-        </div>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <BlobStorageChart data={blobChartData} />
+        <ReportStatusChart
+          data={
+            reportChartData.length > 0
+              ? reportChartData
+              : [{ status: "PENDING", count: 0 }]
+          }
+        />
+        <DataActivityChart totalRecords={dataRecordCount} />
+        <SystemHealthChart />
       </div>
     </div>
   );

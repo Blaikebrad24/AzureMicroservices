@@ -31,7 +31,7 @@ export default async function BlobsPage() {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Blob Storage</h2>
+        <h2 className="text-2xl font-bold text-white">Blob Storage</h2>
         <RoleGate allowedRoles={["admin", "editor"]}>
           <UploadBlobDialog containers={containers} />
         </RoleGate>
@@ -39,7 +39,7 @@ export default async function BlobsPage() {
 
       <div className="mt-6">
         {containers.length === 0 && initialData.content.length === 0 ? (
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-blue-200">
             No containers found. Ensure the blob-service is running and Azurite
             is seeded.
           </p>

@@ -32,8 +32,20 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-xl border border-blue-700/30 bg-gradient-to-br from-blue-900/40 to-slate-900/40 backdrop-blur-sm">
       <Table>
+        <colgroup>
+          {table.getAllColumns().map((column) => (
+            <col
+              key={column.id}
+              style={
+                column.getSize() !== 150
+                  ? { width: `${column.getSize()}px` }
+                  : undefined
+              }
+            />
+          ))}
+        </colgroup>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>

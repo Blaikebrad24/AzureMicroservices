@@ -41,7 +41,7 @@ export function UploadBlobDialog({ containers }: UploadBlobDialogProps) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+        className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-blue-600"
       >
         Upload File
       </button>
@@ -49,22 +49,22 @@ export function UploadBlobDialog({ containers }: UploadBlobDialogProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h3 className="text-lg font-semibold text-gray-900">Upload File</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-xl border border-blue-700/30 bg-gradient-to-br from-blue-900 to-slate-900 p-6 shadow-2xl">
+        <h3 className="text-lg font-semibold text-white">Upload File</h3>
 
         <div className="mt-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-blue-200">
               Container
             </label>
             <select
               value={selectedContainer}
               onChange={(e) => setSelectedContainer(e.target.value)}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-lg border border-blue-700/30 bg-blue-950/50 px-3 py-2 text-sm text-white shadow-sm outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             >
               {containers.map((c) => (
-                <option key={c} value={c}>
+                <option key={c} value={c} className="bg-blue-950">
                   {c}
                 </option>
               ))}
@@ -72,21 +72,21 @@ export function UploadBlobDialog({ containers }: UploadBlobDialogProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-blue-200">
               File
             </label>
             <input
               ref={fileRef}
               type="file"
-              className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
+              className="mt-1 block w-full text-sm text-blue-200 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-blue-500"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600">{error}</p>
+            <p className="text-sm text-red-400">{error}</p>
           )}
           {success && (
-            <p className="text-sm text-green-600">{success}</p>
+            <p className="text-sm text-green-400">{success}</p>
           )}
         </div>
 
@@ -97,14 +97,14 @@ export function UploadBlobDialog({ containers }: UploadBlobDialogProps) {
               setError(null);
               setSuccess(null);
             }}
-            className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className="rounded-lg border border-blue-700/30 px-4 py-2 text-sm font-medium text-blue-200 transition-colors hover:bg-blue-800/30 hover:text-white"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isPending}
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+            className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/20 transition-all hover:from-blue-500 hover:to-blue-600 disabled:opacity-50"
           >
             {isPending ? "Uploading..." : "Upload"}
           </button>

@@ -70,9 +70,9 @@ export function BlobTableClient({
           onChange={(e) => handleContainerChange(e.target.value)}
           className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
         >
-          <option value="">All containers</option>
+          <option value="" className="bg-blue-950">All containers</option>
           {containers.map((c) => (
-            <option key={c} value={c}>
+            <option key={c} value={c} className="bg-blue-950">
               {c}
             </option>
           ))}

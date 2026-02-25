@@ -48,3 +48,8 @@ export async function listBlobsPaginated(
 export async function deleteBlob(container: string, blob: string): Promise<void> {
   return apiDelete("blob", `/api/blobs/${container}/${blob}`);
 }
+
+export async function downloadBlobUrl(container: string, blob: string): Promise<string> {
+  // Return the proxied URL the browser can fetch directly for download
+  return `/api/blobs/${container}/${encodeURIComponent(blob)}`;
+}

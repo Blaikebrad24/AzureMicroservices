@@ -22,8 +22,8 @@ export default async function RoleGate({
 
   if (!hasAccess) {
     return fallback ?? (
-      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
-        <p className="text-sm text-yellow-800">
+      <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
+        <p className="text-sm text-yellow-300">
           You do not have permission to view this content.
         </p>
       </div>
