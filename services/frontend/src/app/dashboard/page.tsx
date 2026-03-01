@@ -2,6 +2,8 @@ import { getCurrentUser } from "@/lib/auth";
 import { listContainers, listBlobsPaginated } from "@/actions/blob-actions";
 import { listReports } from "@/actions/report-actions";
 import { listData } from "@/actions/data-actions";
+import { getMessageCount } from "@/actions/message-actions";
+import { getWeekShiftCount } from "@/actions/calendar-actions";
 import { MetricsCards } from "@/components/dashboard/metrics-cards";
 import { BlobStorageChart } from "@/components/dashboard/charts/blob-storage-chart";
 import { ReportStatusChart } from "@/components/dashboard/charts/report-status-chart";
@@ -9,16 +11,27 @@ import { DataActivityChart } from "@/components/dashboard/charts/data-activity-c
 import { SystemHealthChart } from "@/components/dashboard/charts/system-health-chart";
 import type { Report } from "@/types/api";
 
+function getCurrentWeekMonday(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + diff);
+  return monday.toISOString().split("T")[0];
+}
+
 export default async function DashboardPage() {
   const user = await getCurrentUser();
 
   // Fetch all metrics in parallel
-  const [containersResult, blobsResult, reportsResult, dataResult] =
+  const [containersResult, blobsResult, reportsResult, dataResult, messagesResult, shiftsResult] =
     await Promise.allSettled([
       listContainers(),
       listBlobsPaginated(0, 1),
       listReports(),
       listData(0, 1),
+      getMessageCount(),
+      getWeekShiftCount(getCurrentWeekMonday()),
     ]);
 
   const containers =
@@ -29,6 +42,10 @@ export default async function DashboardPage() {
     reportsResult.status === "fulfilled" ? reportsResult.value : [];
   const dataRecordCount =
     dataResult.status === "fulfilled" ? dataResult.value.totalElements : 0;
+  const messageCount =
+    messagesResult.status === "fulfilled" ? messagesResult.value : 0;
+  const shiftCount =
+    shiftsResult.status === "fulfilled" ? shiftsResult.value : 0;
 
   // Build chart data: blob counts per container
   let blobChartData: { container: string; count: number }[] = [];
@@ -70,6 +87,8 @@ export default async function DashboardPage() {
         containerCount={containers.length}
         reportCount={reports.length}
         dataRecordCount={dataRecordCount}
+        messageCount={messageCount}
+        shiftCount={shiftCount}
       />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">

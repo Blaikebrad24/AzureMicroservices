@@ -157,6 +157,27 @@ services:
     depends_on:
       - azurite
       - redis
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  seed-blobs:
+    image: alpine:3.20
+    container_name: seed-blobs
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c", "apk add --no-cache curl > /dev/null 2>&1 && sh /scripts/seed-via-api.sh"]
+    environment:
+      BLOB_API: http://blob-service:8080/api/blobs
+    volumes:
+      - ./scripts:/scripts:ro
+    networks:
+      - app-network
+    depends_on:
+      blob-service:
+        condition: service_healthy
 
   reports-service:
     build:
@@ -202,6 +223,30 @@ services:
       redis:
         condition: service_healthy
 
+  ops-service:
+    build:
+      context: ./services/ops-service
+      dockerfile: Dockerfile
+    container_name: ops-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ops_service_db
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-appuser}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_DATA_REDIS_PASSWORD: ${REDIS_PASSWORD:-redispassword}
+    ports:
+      - "8084:8080"
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
   # ============================================================
   # FRONTEND LAYER
   # ============================================================
@@ -217,6 +262,7 @@ services:
       BLOB_SERVICE_URL: http://blob-service:8080
       REPORTS_SERVICE_URL: http://reports-service:8080
       DATA_SERVICE_URL: http://data-service:8080
+      OPS_SERVICE_URL: http://ops-service:8080
       REDIS_URL: redis://:${REDIS_PASSWORD:-redispassword}@redis:6379/0
     networks:
       - app-network
@@ -224,4 +270,5 @@ services:
       - blob-service
       - reports-service
       - data-service
+      - ops-service
       - redis

@@ -7,6 +7,8 @@ import {
   HardDrive,
   FileText,
   Database,
+  MessageSquare,
+  CalendarDays,
   Shield,
   LogOut,
 } from "lucide-react";
@@ -17,6 +19,8 @@ const navigation = [
   { name: "Blob Storage", href: "/dashboard/blobs", icon: HardDrive },
   { name: "Reports", href: "/dashboard/reports", icon: FileText },
   { name: "Data", href: "/dashboard/data", icon: Database },
+  { name: "Messages", href: "/dashboard/messages", icon: MessageSquare },
+  { name: "Calendar", href: "/dashboard/calendar", icon: CalendarDays },
 ];
 
 const adminNavigation = [

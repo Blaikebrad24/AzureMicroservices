@@ -46,3 +46,72 @@ export interface Page<T> {
   first: boolean;
   last: boolean;
 }
+
+// Messaging types
+
+export interface Channel {
+  id: number;
+  name: string;
+  description?: string;
+  color: string;
+  icon: string;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface Message {
+  id: number;
+  channel: Channel;
+  author: string;
+  content: string;
+  priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMessageRequest {
+  channelId: number;
+  author: string;
+  content: string;
+  priority?: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+}
+
+// Calendar types
+
+export interface TeamMember {
+  id: number;
+  name: string;
+  username?: string;
+  role?: string;
+  color: string;
+  createdAt: string;
+}
+
+export interface Shift {
+  id: number;
+  teamMember: TeamMember;
+  title?: string;
+  shiftDate: string;
+  startTime?: string;
+  endTime?: string;
+  shiftType: "DAY" | "SWING" | "NIGHT" | "ONCALL" | "OFF";
+  notes?: string;
+  createdBy?: string;
+  createdAt: string;
+}
+
+export interface ShiftEntry {
+  teamMemberName: string;
+  shiftDate: string;
+  startTime?: string;
+  endTime?: string;
+  shiftType: "DAY" | "SWING" | "NIGHT" | "ONCALL" | "OFF";
+  title?: string;
+  notes?: string;
+}
+
+export interface ScheduleUploadRequest {
+  weekOf: string;
+  shifts: ShiftEntry[];
+}

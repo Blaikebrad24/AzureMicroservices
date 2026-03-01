@@ -15,6 +15,7 @@ jobs:
       blob-service: ${{ steps.filter.outputs.blob-service }}
       reports-service: ${{ steps.filter.outputs.reports-service }}
       data-service: ${{ steps.filter.outputs.data-service }}
+      ops-service: ${{ steps.filter.outputs.ops-service }}
       frontend: ${{ steps.filter.outputs.frontend }}
       nginx-proxy: ${{ steps.filter.outputs.nginx-proxy }}
       keycloak: ${{ steps.filter.outputs.keycloak }}
@@ -29,6 +30,7 @@ jobs:
             blob-service: 'services/blob-service/**'
             reports-service: 'services/reports-service/**'
             data-service: 'services/data-service/**'
+            ops-service: 'services/ops-service/**'
             frontend: 'services/frontend/**'
             nginx-proxy: 'services/nginx-proxy/**'
             keycloak: 'services/keycloak/**'
@@ -57,11 +59,12 @@ jobs:
     if: >
       needs.changes.outputs.blob-service == 'true' ||
       needs.changes.outputs.reports-service == 'true' ||
-      needs.changes.outputs.data-service == 'true'
+      needs.changes.outputs.data-service == 'true' ||
+      needs.changes.outputs.ops-service == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [blob-service, reports-service, data-service]
+        service: [blob-service, reports-service, data-service, ops-service]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -129,6 +132,8 @@ jobs:
             context: services/reports-service
           - service: data-service
             context: services/data-service
+          - service: ops-service
+            context: services/ops-service
           - service: frontend
             context: services/frontend
     steps:

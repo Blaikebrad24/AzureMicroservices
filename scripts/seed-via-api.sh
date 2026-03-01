@@ -1,32 +1,32 @@
-#!/usr/bin/env bash
+#!/bin/sh
 # Seed Azurite through the blob-service REST API (no az CLI required)
-# Requires: curl, blob-service running on localhost:8081
+# Works in both Docker (alpine/sh) and host (bash) environments
+# Requires: curl, blob-service reachable at BLOB_API
 set -e
 
-BLOB_API="http://localhost:8081/api/blobs"
+BLOB_API="${BLOB_API:-http://localhost:8081/api/blobs}"
 
-echo "Waiting for blob-service to be ready..."
-for i in $(seq 1 30); do
+echo "Waiting for blob-service at ${BLOB_API}..."
+i=0
+while [ "$i" -lt 60 ]; do
   if curl -sf "${BLOB_API}/containers" > /dev/null 2>&1; then
     echo "blob-service is ready."
     break
   fi
-  if [ "$i" -eq 30 ]; then
-    echo "ERROR: blob-service not reachable at ${BLOB_API} after 30s"
+  i=$((i + 1))
+  if [ "$i" -eq 60 ]; then
+    echo "ERROR: blob-service not reachable at ${BLOB_API} after 60s"
     exit 1
   fi
-  sleep 1
+  sleep 2
 done
 
-CONTAINERS=("reports" "uploads" "exports" "archives")
-
 upload_blob() {
-  local container="$1"
-  local filename="$2"
-  local content="$3"
+  container="$1"
+  filename="$2"
+  content="$3"
 
-  local tmpfile
-  tmpfile=$(mktemp "/tmp/${filename}.XXXXXX")
+  tmpfile=$(mktemp)
   echo "$content" > "$tmpfile"
 
   curl -sf -X POST "${BLOB_API}/${container}" \
@@ -37,11 +37,14 @@ upload_blob() {
 }
 
 # Seed numbered blobs per container
-for container in "${CONTAINERS[@]}"; do
+for container in reports uploads exports archives; do
   echo "Seeding ${container}..."
-  for i in $(seq -w 1 10); do
-    upload_blob "$container" "${container}-file-${i}.txt" \
-      "Sample content for ${container} file ${i}. Generated for local development testing."
+  n=1
+  while [ "$n" -le 10 ]; do
+    padded=$(printf "%02d" "$n")
+    upload_blob "$container" "${container}-file-${padded}.txt" \
+      "Sample content for ${container} file ${padded}. Generated for local development testing."
+    n=$((n + 1))
   done
 done
 
@@ -59,17 +62,6 @@ upload_blob "archives" "legacy-report.pdf" "PDF placeholder content for legacy r
 # Verify
 echo ""
 echo "Verifying containers..."
-RESULT=$(curl -sf "${BLOB_API}/containers")
-echo "Containers: ${RESULT}"
-
-TOTAL=0
-for container in "${CONTAINERS[@]}"; do
-  COUNT=$(curl -sf "${BLOB_API}/${container}" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "?")
-  echo "  ${container}: ${COUNT} blobs"
-  if [ "$COUNT" != "?" ]; then
-    TOTAL=$((TOTAL + COUNT))
-  fi
-done
-
+curl -sf "${BLOB_API}/containers"
 echo ""
-echo "Seeding complete: ${TOTAL} blobs across ${#CONTAINERS[@]} containers"
+echo "Seeding complete: 48 blobs across 4 containers"

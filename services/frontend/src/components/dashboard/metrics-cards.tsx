@@ -1,12 +1,14 @@
 "use client";
 
-import { HardDrive, FolderOpen, FileText, Database } from "lucide-react";
+import { HardDrive, FolderOpen, FileText, Database, MessageSquare, CalendarDays } from "lucide-react";
 
 interface MetricsCardsProps {
   blobCount: number;
   containerCount: number;
   reportCount: number;
   dataRecordCount: number;
+  messageCount: number;
+  shiftCount: number;
 }
 
 const metrics = [
@@ -38,6 +40,20 @@ const metrics = [
     gradient: "from-indigo-500 to-blue-500",
     bgGlow: "shadow-indigo-500/10",
   },
+  {
+    key: "messages" as const,
+    label: "Messages",
+    icon: MessageSquare,
+    gradient: "from-cyan-500 to-blue-500",
+    bgGlow: "shadow-cyan-500/10",
+  },
+  {
+    key: "shifts" as const,
+    label: "Shifts This Week",
+    icon: CalendarDays,
+    gradient: "from-purple-500 to-indigo-500",
+    bgGlow: "shadow-purple-500/10",
+  },
 ];
 
 export function MetricsCards({
@@ -45,16 +61,20 @@ export function MetricsCards({
   containerCount,
   reportCount,
   dataRecordCount,
+  messageCount,
+  shiftCount,
 }: MetricsCardsProps) {
   const values: Record<string, number> = {
     blobs: blobCount,
     containers: containerCount,
     reports: reportCount,
     records: dataRecordCount,
+    messages: messageCount,
+    shifts: shiftCount,
   };
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {metrics.map((metric) => {
         const Icon = metric.icon;
         return (

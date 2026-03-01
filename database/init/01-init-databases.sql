@@ -5,3 +5,4 @@
 CREATE DATABASE keycloak_db;
 CREATE DATABASE data_service_db;
 CREATE DATABASE reports_service_db;
+CREATE DATABASE ops_service_db;

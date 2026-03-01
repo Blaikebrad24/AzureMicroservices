@@ -1,8 +1,9 @@
 const BLOB_SERVICE_URL = process.env.BLOB_SERVICE_URL || "http://blob-service:8080";
 const REPORTS_SERVICE_URL = process.env.REPORTS_SERVICE_URL || "http://reports-service:8080";
 const DATA_SERVICE_URL = process.env.DATA_SERVICE_URL || "http://data-service:8080";
+const OPS_SERVICE_URL = process.env.OPS_SERVICE_URL || "http://ops-service:8080";
 
-type ServiceName = "blob" | "reports" | "data";
+type ServiceName = "blob" | "reports" | "data" | "ops";
 
 function getBaseUrl(service: ServiceName): string {
   switch (service) {
@@ -12,6 +13,8 @@ function getBaseUrl(service: ServiceName): string {
       return REPORTS_SERVICE_URL;
     case "data":
       return DATA_SERVICE_URL;
+    case "ops":
+      return OPS_SERVICE_URL;
   }
 }
 

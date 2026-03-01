@@ -231,6 +231,35 @@ module "data_service" {
   tags = local.tags
 }
 
+module "ops_service" {
+  source              = "../../modules/container-app"
+  app_name            = "ops-service"
+  resource_group_name = module.networking.resource_group_name
+  environment_id      = module.container_app_env.id
+  registry_server     = module.acr.login_server
+  registry_username   = module.acr.admin_username
+  registry_password   = module.acr.admin_password
+  image_tag           = var.image_tag
+  target_port         = 8080
+  external_ingress    = false
+  cpu                 = 0.5
+  memory              = "1Gi"
+  env_vars = [
+    { name = "SPRING_PROFILES_ACTIVE", value = "azure" },
+    { name = "SPRING_DATASOURCE_URL", value = "jdbc:postgresql://${module.postgres.server_fqdn}:5432/ops_service_db" },
+    { name = "SPRING_DATASOURCE_USERNAME", value = var.postgres_admin_username },
+    { name = "SPRING_DATA_REDIS_HOST", value = module.redis.hostname },
+    { name = "SPRING_DATA_REDIS_PORT", value = tostring(module.redis.port) },
+    { name = "SPRING_DATA_REDIS_SSL_ENABLED", value = "true" },
+    { name = "SPRING_DATA_REDIS_PASSWORD", secret_name = "redis-password" },
+  ]
+  secrets = [
+    { name = "db-password", value = var.postgres_admin_password },
+    { name = "redis-password", value = module.redis.primary_access_key },
+  ]
+  tags = local.tags
+}
+
 module "frontend" {
   source              = "../../modules/container-app"
   app_name            = "frontend"
@@ -249,6 +278,7 @@ module "frontend" {
     { name = "BLOB_SERVICE_URL", value = "http://blob-service" },
     { name = "REPORTS_SERVICE_URL", value = "http://reports-service" },
     { name = "DATA_SERVICE_URL", value = "http://data-service" },
+    { name = "OPS_SERVICE_URL", value = "http://ops-service" },
   ]
   tags = local.tags
 }
