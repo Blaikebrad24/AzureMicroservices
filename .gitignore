@@ -64,3 +64,8 @@ Thumbs.db
 Planning.md
 CLAUDE_impl.md
 .env.example
+
+# === On-Prem Porting (local-only, never committed) ===
+ONPREM_GUIDE.md
+docker-compose.onprem.yml
+onprem/
