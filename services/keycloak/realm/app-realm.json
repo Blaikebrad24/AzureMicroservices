@@ -27,7 +27,12 @@
       }
     ]
   },
-  "defaultRoles": ["viewer"],
+  "defaultRole": {
+    "name": "default-roles-app-realm",
+    "composites": {
+      "realm": ["viewer"]
+    }
+  },
   "clients": [
     {
       "clientId": "nginx-proxy-client",
@@ -113,8 +118,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "include.in.token.scope": "true",
-        "display.on.consent.screen": "true",
-        "consent.screen.text": "User profile"
+        "display.on.consent.screen": "false"
       },
       "protocolMappers": [
         {
@@ -178,8 +182,7 @@
       "protocol": "openid-connect",
       "attributes": {
         "include.in.token.scope": "true",
-        "display.on.consent.screen": "true",
-        "consent.screen.text": "Email address"
+        "display.on.consent.screen": "false"
       },
       "protocolMappers": [
         {
